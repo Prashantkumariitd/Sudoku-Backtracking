@@ -1,0 +1,94 @@
+import time
+
+class SudokuSolver:
+    def __init__(self, grid):
+        self.grid = grid
+        self.steps = 0
+
+    def print_grid(self):
+        for row in range(9):
+            if row % 3 == 0 and row != 0:
+                print("-" * 21)
+            for col in range(9):
+                if col % 3 == 0 and col != 0:
+                    print("| ", end="")
+                if col == 8:
+                    print(self.grid[row][col])
+                else:
+                    print(f"{self.grid[row][col]} ", end="")
+        print("\n")
+
+    def find_empty_location(self):
+        for i in range(9):
+            for j in range(9):
+                if self.grid[i][j] == 0:
+                    return i, j
+        return None
+
+    def is_valid(self, num, row, col):
+        for i in range(9):
+            if self.grid[row][i] == num or self.grid[i][col] == num:
+                return False
+        start_row, start_col = 3 * (row // 3), 3 * (col // 3)
+        for i in range(start_row, start_row + 3):
+            for j in range(start_col, start_col + 3):
+                if self.grid[i][j] == num:
+                    return False
+        return True
+
+    def solve(self, step_by_step=False):
+        empty_location = self.find_empty_location()
+        if not empty_location:
+            return True
+        row, col = empty_location
+
+        for num in range(1, 10):
+            if self.is_valid(num, row, col):
+                self.grid[row][col] = num
+                self.steps += 1
+                if step_by_step:
+                    print(f"Step {self.steps}:")
+                    self.print_grid()
+
+                if self.solve(step_by_step):
+                    return True
+
+                self.grid[row][col] = 0
+                self.steps += 1
+                if step_by_step:
+                    print(f"Step {self.steps}: Backtracking")
+                    self.print_grid()
+
+        return False
+
+    def solve_with_timing(self, step_by_step=False):
+        start_time = time.time()
+        solved = self.solve(step_by_step)
+        end_time = time.time()
+        if solved:
+            print(f"Sudoku solved in {end_time - start_time:.4f} seconds.")
+            print(f"Total steps taken: {self.steps}")
+        else:
+            print("No solution exists.")
+        return solved
+
+# Example usage
+if __name__ == "__main__":
+    sudoku_grid = [
+        [5, 3, 0, 0, 7, 0, 0, 0, 0],
+        [6, 0, 0, 1, 9, 5, 0, 0, 0],
+        [0, 9, 8, 0, 0, 0, 0, 6, 0],
+        [8, 0, 0, 0, 6, 0, 0, 0, 3],
+        [4, 0, 0, 8, 0, 3, 0, 0, 1],
+        [7, 0, 0, 0, 2, 0, 0, 0, 6],
+        [0, 6, 0, 0, 0, 0, 2, 8, 0],
+        [0, 0, 0, 4, 1, 9, 0, 0, 5],
+        [0, 0, 0, 0, 8, 0, 0, 7, 9]
+    ]
+
+    solver = SudokuSolver(sudoku_grid)
+    print("Initial Sudoku grid:")
+    solver.print_grid()
+    solver.solve_with_timing(step_by_step=True)
+    print("Final Sudoku grid:")
+    solver.print_grid()
