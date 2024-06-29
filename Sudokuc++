@@ -1,0 +1,128 @@
+#include <iostream>
+#include <vector>
+#include <ctime>
+
+class SudokuSolver {
+public:
+    SudokuSolver(std::vector<std::vector<int>> grid) : grid(grid), steps(0) {}
+
+    void printGrid() {
+        for (int row = 0; row < 9; ++row) {
+            if (row % 3 == 0 && row != 0) {
+                std::cout << std::string(21, '-') << std::endl;
+            }
+            for (int col = 0; col < 9; ++col) {
+                if (col % 3 == 0 && col != 0) {
+                    std::cout << "| ";
+                }
+                if (col == 8) {
+                    std::cout << grid[row][col] << std::endl;
+                } else {
+                    std::cout << grid[row][col] << " ";
+                }
+            }
+        }
+        std::cout << std::endl;
+    }
+
+    bool solve(bool step_by_step = false) {
+        int row, col;
+        if (!findEmptyLocation(row, col)) {
+            return true;
+        }
+
+        for (int num = 1; num <= 9; ++num) {
+            if (isValid(num, row, col)) {
+                grid[row][col] = num;
+                ++steps;
+                if (step_by_step) {
+                    std::cout << "Step " << steps << ":" << std::endl;
+                    printGrid();
+                }
+
+                if (solve(step_by_step)) {
+                    return true;
+                }
+
+                grid[row][col] = 0;
+                ++steps;
+                if (step_by_step) {
+                    std::cout << "Step " << steps << ": Backtracking" << std::endl;
+                    printGrid();
+                }
+            }
+        }
+
+        return false;
+    }
+
+    void solveWithTiming(bool step_by_step = false) {
+        clock_t start_time = clock();
+        bool solved = solve(step_by_step);
+        clock_t end_time = clock();
+        double time_taken = double(end_time - start_time) / CLOCKS_PER_SEC;
+        if (solved) {
+            std::cout << "Sudoku solved in " << time_taken << " seconds." << std::endl;
+            std::cout << "Total steps taken: " << steps << std::endl;
+        } else {
+            std::cout << "No solution exists." << std::endl;
+        }
+    }
+
+private:
+    std::vector<std::vector<int>> grid;
+    int steps;
+
+    bool findEmptyLocation(int &row, int &col) {
+        for (row = 0; row < 9; ++row) {
+            for (col = 0; col < 9; ++col) {
+                if (grid[row][col] == 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    bool isValid(int num, int row, int col) {
+        for (int i = 0; i < 9; ++i) {
+            if (grid[row][i] == num || grid[i][col] == num) {
+                return false;
+            }
+        }
+        int startRow = row / 3 * 3;
+        int startCol = col / 3 * 3;
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < 3; ++j) {
+                if (grid[startRow + i][startCol + j] == num) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+};
+
+// Example usage
+int main() {
+    std::vector<std::vector<int>> sudoku_grid = {
+        {5, 3, 0, 0, 7, 0, 0, 0, 0},
+        {6, 0, 0, 1, 9, 5, 0, 0, 0},
+        {0, 9, 8, 0, 0, 0, 0, 6, 0},
+        {8, 0, 0, 0, 6, 0, 0, 0, 3},
+        {4, 0, 0, 8, 0, 3, 0, 0, 1},
+        {7, 0, 0, 0, 2, 0, 0, 0, 6},
+        {0, 6, 0, 0, 0, 0, 2, 8, 0},
+        {0, 0, 0, 4, 1, 9, 0, 0, 5},
+        {0, 0, 0, 0, 8, 0, 0, 7, 9}
+    };
+
+    SudokuSolver solver(sudoku_grid);
+    std::cout << "Initial Sudoku grid:" << std::endl;
+    solver.printGrid();
+    solver.solveWithTiming(true);
+    std::cout << "Final Sudoku grid:" << std::endl;
+    solver.printGrid();
+
+    return 0;
+}
